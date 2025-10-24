@@ -1,0 +1,14 @@
+image:
+  repository: shimit/faulti_pod
+  tag: latest
+  pullPolicy: IfNotPresent
+
+replicaCount: 1
+
+service:
+  type: ClusterIP
+  port: 80
+
+env:
+  BUG: "1"
+

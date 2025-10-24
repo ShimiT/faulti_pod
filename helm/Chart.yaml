@@ -1,0 +1,7 @@
+apiVersion: v2
+name: faulty-app
+description: Faulty Go app for PoC incidents
+type: application
+version: 0.1.0
+appVersion: "0.1.0"
+

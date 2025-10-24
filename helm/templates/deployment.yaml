@@ -1,0 +1,42 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: faulty-app
+  labels:
+    app: faulty-app
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app: faulty-app
+  template:
+    metadata:
+      labels:
+        app: faulty-app
+      annotations:
+        org.opencontainers.image.revision: "{{ .Values.annotations.revision | default .Chart.AppVersion }}"
+        org.opencontainers.image.source: "{{ .Values.annotations.source }}"
+    spec:
+      containers:
+      - name: app
+        image: {{ .Values.image.repository }}:{{ .Values.image.tag }}
+        imagePullPolicy: {{ .Values.image.pullPolicy }}
+        args: ["/app"]
+        env:
+        - name: BUG
+          value: {{ .Values.env.BUG | quote }}
+        ports:
+        - containerPort: 8080
+        livenessProbe:
+          httpGet:
+            path: /healthz
+            port: 8080
+          initialDelaySeconds: 5
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /ready
+            port: 8080
+          initialDelaySeconds: 5
+          periodSeconds: 10
+
