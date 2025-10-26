@@ -37,10 +37,13 @@ func calcHandler(w http.ResponseWriter, r *http.Request) {
     }
     parts := strings.Split(numsParam, ",")
     idx, _ := strconv.Atoi(indexStr)
-    // BUG: no bounds check
+    if idx < 0 || idx >= len(parts) {
+        http.Error(w, "index out of range", http.StatusBadRequest)
+        return
+    }
     n, _ := strconv.Atoi(parts[idx])
     w.Header().Set("Content-Type", "application/json")
-    _, _ = w.Write([]byte(fmt.Sprintf(`{"value":%d}`, n)))
+    _, _ = w.Write([]byte(fmt.Sprintf(`{"value":%d}", n)))
 }
 
 // crashHandler demonstrates nil pointer dereference when BUG=1.
@@ -64,5 +67,4 @@ func main() {
     log.Printf("faulty-app listening on %s", addr)
     log.Fatal(http.ListenAndServe(addr, mux))
 }
-
 
