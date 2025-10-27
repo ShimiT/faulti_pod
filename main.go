@@ -7,6 +7,8 @@ import (
     "os"
     "strconv"
     "strings"
+    "net/http/httptest"
+    "testing"
 )
 
 func healthz(w http.ResponseWriter, r *http.Request) {
@@ -67,4 +69,36 @@ func main() {
     addr := ":8080"
     log.Printf("faulty-app listening on %s", addr)
     log.Fatal(http.ListenAndServe(addr, mux))
+}
+
+func TestCalcHandler_IndexOutOfRange(t *testing.T) {
+    req := httptest.NewRequest("GET", "/calc?nums=1,2,3&index=10", nil)
+    rr := httptest.NewRecorder()
+    calcHandler(rr, req)
+    if rr.Code != http.StatusBadRequest {
+        t.Fatalf("expected 400, got %d", rr.Code)
+    }
+}
+
+func TestCalcHandler_NegativeIndex(t *testing.T) {
+    req := httptest.NewRequest("GET", "/calc?nums=1,2,3&index=-1", nil)
+    rr := httptest.NewRecorder()
+    calcHandler(rr, req)
+    if rr.Code != http.StatusBadRequest {
+        t.Fatalf("expected 400, got %d", rr.Code)
+    }
+}
+
+func TestCalcHandler_ValidIndex(t *testing.T) {
+    req := httptest.NewRequest("GET", "/calc?nums=1,2,3&index=1", nil)
+    rr := httptest.NewRecorder()
+    calcHandler(rr, req)
+    if rr.Code != http.StatusOK {
+        t.Fatalf("expected 200, got %d", rr.Code)
+    }
+    want := `{"value":2}`
+    got := strings.TrimSpace(rr.Body.String())
+    if got != want {
+        t.Fatalf("expected %s, got %s", want, got)
+    }
 }
