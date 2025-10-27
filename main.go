@@ -41,11 +41,11 @@ func calcHandler(w http.ResponseWriter, r *http.Request) {
         http.Error(w, "invalid index", http.StatusBadRequest)
         return
     }
-    // BUG: no bounds check
     if idx < 0 || idx >= len(parts) {
         http.Error(w, "index out of range", http.StatusBadRequest)
         return
     }
+    // BUG: no bounds check
     n, err := strconv.Atoi(parts[idx])
     if err != nil {
         http.Error(w, "invalid number", http.StatusBadRequest)
