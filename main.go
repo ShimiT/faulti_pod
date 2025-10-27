@@ -36,14 +36,18 @@ func calcHandler(w http.ResponseWriter, r *http.Request) {
         indexStr = "0"
     }
     parts := strings.Split(numsParam, ",")
-    idx, _ := strconv.Atoi(indexStr)
-    if idx < 0 || idx >= len(parts) {
+    idx, err := strconv.Atoi(indexStr)
+    if err != nil || idx < 0 || idx >= len(parts) {
         http.Error(w, "index out of range", http.StatusBadRequest)
         return
     }
-    n, _ := strconv.Atoi(parts[idx])
+    n, err := strconv.Atoi(parts[idx])
+    if err != nil {
+        http.Error(w, "invalid number", http.StatusBadRequest)
+        return
+    }
     w.Header().Set("Content-Type", "application/json")
-    _, _ = w.Write([]byte(fmt.Sprintf(`{"value":%d}", n)))
+    _, _ = w.Write([]byte(fmt.Sprintf(`{"value":%d}`, n)))
 }
 
 // crashHandler demonstrates nil pointer dereference when BUG=1.
