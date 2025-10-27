@@ -36,12 +36,20 @@ func calcHandler(w http.ResponseWriter, r *http.Request) {
         indexStr = "0"
     }
     parts := strings.Split(numsParam, ",")
-    idx, _ := strconv.Atoi(indexStr)
+    idx, err := strconv.Atoi(indexStr)
+    if err != nil {
+        http.Error(w, "invalid index", http.StatusBadRequest)
+        return
+    }
     if idx < 0 || idx >= len(parts) {
         http.Error(w, "index out of range", http.StatusBadRequest)
         return
     }
-    n, _ := strconv.Atoi(parts[idx])
+    n, err := strconv.Atoi(parts[idx])
+    if err != nil {
+        http.Error(w, "invalid number", http.StatusBadRequest)
+        return
+    }
     w.Header().Set("Content-Type", "application/json")
     _, _ = w.Write([]byte(fmt.Sprintf(`{"value":%d}`, n)))
 }
@@ -67,5 +75,3 @@ func main() {
     log.Printf("faulty-app listening on %s", addr)
     log.Fatal(http.ListenAndServe(addr, mux))
 }
-
-
