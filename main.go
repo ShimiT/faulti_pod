@@ -46,7 +46,6 @@ func calcHandler(w http.ResponseWriter, r *http.Request) {
 func crashHandler(w http.ResponseWriter, r *http.Request) {
     if os.Getenv("BUG") == "1" {
         var p *int
-        // BUG: nil pointer dereference
         _ = *p
     }
     w.Header().Set("Content-Type", "application/json")
