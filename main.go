@@ -36,11 +36,21 @@ func calcHandler(w http.ResponseWriter, r *http.Request) {
         indexStr = "0"
     }
     parts := strings.Split(numsParam, ",")
-    idx, _ := strconv.Atoi(indexStr)
+
+    // Validate that the provided index is a valid integer; return a 400 for malformed input.
+    idx, err := strconv.Atoi(indexStr)
+    if err != nil {
+        http.Error(w, "invalid index", http.StatusBadRequest)
+        return
+    }
+
+    // Bounds check to prevent out-of-range slice access panic (bug fix).
     if idx < 0 || idx >= len(parts) {
         http.Error(w, "index out of range", http.StatusBadRequest)
         return
     }
+
+    // Existing behavior preserved: convert selected element to int; any parse error defaults to 0.
     n, _ := strconv.Atoi(parts[idx])
     w.Header().Set("Content-Type", "application/json")
     _, _ = w.Write([]byte(fmt.Sprintf(`{"value":%d}`, n)))
@@ -67,5 +77,3 @@ func main() {
     log.Printf("faulty-app listening on %s", addr)
     log.Fatal(http.ListenAndServe(addr, mux))
 }
-
-
