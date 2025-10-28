@@ -36,20 +36,27 @@ func calcHandler(w http.ResponseWriter, r *http.Request) {
         indexStr = "0"
     }
     parts := strings.Split(numsParam, ",")
+
+    // CHANGE: Handle error from strconv.Atoi for index to avoid silently using 0 on malformed input
     idx, err := strconv.Atoi(indexStr)
     if err != nil {
         http.Error(w, "invalid index", http.StatusBadRequest)
         return
     }
+
+    // Existing bounds check preserved to prevent out-of-range panic
     if idx < 0 || idx >= len(parts) {
         http.Error(w, "index out of range", http.StatusBadRequest)
         return
     }
+
+    // CHANGE: Handle error from strconv.Atoi for the selected element to avoid silently using 0 on malformed input
     n, err := strconv.Atoi(parts[idx])
     if err != nil {
         http.Error(w, "invalid number", http.StatusBadRequest)
         return
     }
+
     w.Header().Set("Content-Type", "application/json")
     _, _ = w.Write([]byte(fmt.Sprintf(`{"value":%d}`, n)))
 }
