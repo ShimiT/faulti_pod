@@ -37,6 +37,13 @@ func calcHandler(w http.ResponseWriter, r *http.Request) {
     }
     parts := strings.Split(numsParam, ",")
     idx, _ := strconv.Atoi(indexStr)
+    // Added bounds check to prevent out-of-range access on parts.
+    // Without this guard, parts[idx] could panic when idx is negative or >= len(parts).
+    // On invalid index, we return 400 Bad Request instead of crashing the server.
+    if idx < 0 || idx >= len(parts) {
+        http.Error(w, "index out of range", http.StatusBadRequest)
+        return
+    }
     n, _ := strconv.Atoi(parts[idx])
     w.Header().Set("Content-Type", "application/json")
     _, _ = w.Write([]byte(fmt.Sprintf(`{"value":%d}`, n)))
@@ -46,6 +53,7 @@ func calcHandler(w http.ResponseWriter, r *http.Request) {
 func crashHandler(w http.ResponseWriter, r *http.Request) {
     if os.Getenv("BUG") == "1" {
         var p *int
+        // BUG: nil pointer dereference
         _ = *p
     }
     w.Header().Set("Content-Type", "application/json")
@@ -62,5 +70,3 @@ func main() {
     log.Printf("faulty-app listening on %s", addr)
     log.Fatal(http.ListenAndServe(addr, mux))
 }
-
-
