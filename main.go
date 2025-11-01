@@ -26,6 +26,7 @@ func ready(w http.ResponseWriter, r *http.Request) {
 
 // calcHandler demonstrates a subtle bug: out-of-range slice access when index is too large.
 // Example: /calc?nums=1,2,3&index=10 will panic with index out of range.
+// A bounds check is added below to prevent this panic and instead return HTTP 400.
 func calcHandler(w http.ResponseWriter, r *http.Request) {
     numsParam := r.URL.Query().Get("nums")
     if numsParam == "" {
@@ -36,12 +37,18 @@ func calcHandler(w http.ResponseWriter, r *http.Request) {
         indexStr = "0"
     }
     parts := strings.Split(numsParam, ",")
-    idx, _ := strconv.Atoi(indexStr)
+    idx, _ := strconv.Atoi(indexStr) // Intentionally ignoring error to preserve prior behavior (defaults to 0 on parse error).
+
+    // Bounds check to ensure idx is a valid position in parts.
+    // This prevents a panic from accessing parts[idx] when idx is negative or >= len(parts).
+    // If invalid, respond with 400 Bad Request instead of crashing the server.
     if idx < 0 || idx >= len(parts) {
         http.Error(w, "index out of range", http.StatusBadRequest)
         return
     }
-    n, _ := strconv.Atoi(parts[idx])
+
+    // Safe to index parts now that we've validated idx.
+    n, _ := strconv.Atoi(parts[idx]) // Conversion error is ignored to maintain existing behavior.
     w.Header().Set("Content-Type", "application/json")
     _, _ = w.Write([]byte(fmt.Sprintf(`{"value":%d}`, n)))
 }
@@ -67,5 +74,3 @@ func main() {
     log.Printf("faulty-app listening on %s", addr)
     log.Fatal(http.ListenAndServe(addr, mux))
 }
-
-
