@@ -37,7 +37,10 @@ func calcHandler(w http.ResponseWriter, r *http.Request) {
     }
     parts := strings.Split(numsParam, ",")
     idx, _ := strconv.Atoi(indexStr)
+    // Added bounds check to prevent accessing parts[idx] with an invalid index.
+    // This avoids a runtime panic and returns a 400 Bad Request if the index is out of range.
     if idx < 0 || idx >= len(parts) {
+        // Added explicit error response for out-of-range index.
         http.Error(w, "index out of range", http.StatusBadRequest)
         return
     }
@@ -67,5 +70,3 @@ func main() {
     log.Printf("faulty-app listening on %s", addr)
     log.Fatal(http.ListenAndServe(addr, mux))
 }
-
-
