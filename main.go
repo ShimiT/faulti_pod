@@ -38,11 +38,14 @@ func calcHandler(w http.ResponseWriter, r *http.Request) {
     parts := strings.Split(numsParam, ",")
     idx, _ := strconv.Atoi(indexStr)
     // BUG: no bounds check
+    // Added: bounds check to prevent out-of-range access and the resulting panic when idx is invalid.
     if idx >= 0 && idx < len(parts) {
+        // Added: safe path parses the selected number only when idx is within bounds.
         n, _ := strconv.Atoi(parts[idx])
         w.Header().Set("Content-Type", "application/json")
         _, _ = w.Write([]byte(fmt.Sprintf(`{"value":%d}`, n)))
     } else {
+        // Added: return HTTP 400 with a clear error message when idx is out of range instead of panicking.
         w.WriteHeader(http.StatusBadRequest)
         _, _ = w.Write([]byte(`{"error":"index out of range"}`))
     }
@@ -69,5 +72,3 @@ func main() {
     log.Printf("faulty-app listening on %s", addr)
     log.Fatal(http.ListenAndServe(addr, mux))
 }
-
-
